@@ -163,7 +163,7 @@ MP;`
 		return '';
 	end if;`
   
-####*Nếu trải qua hết thì thực hiện trả về như sau : *
+*Nếu trải qua hết thì thực hiện trả về như sau : *
 
 >`return 'EXISTS(select * from DUAN where MADA = DUAN and TRUONGDA = ' || user || ')';`
 

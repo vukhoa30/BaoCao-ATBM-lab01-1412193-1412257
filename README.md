@@ -8,7 +8,7 @@
 
 >`Những User :  1412200 (P.NS), 1412001(P.KT), 1412002(P.KH), ... là các Trưởng phòng`
 
->`Những User :  là các Trưởng đề án`
+>`Những User :  1412173 là quản lý dự án
 
 >`Những User : 1412186, 1412192, 1412200,1412201,1412202,1412203,1412204,1412205, ... , 1412213 là các Nhân viên bình thường`
 
@@ -194,77 +194,155 @@ MP;`
 ## Policy 9: Mỗi dự án trong công ty có các mức độ nhạy cảm được đánh dấu bao gồm “Thông thường”, “Giới hạn”, “Bí mật”, “Bí mật cao”. Mỗi dự án có thể thuộc quyền quản lýcủa tổng công ty hoặc của 1 trong 3 chi nhánh “Tp.Hồ Chí Minh”, “Hà Nội”, “Đà Nẵng”. Mỗi dự án có thể liên quan đến các phòng ban: “Nhân sự”, “Kế toán”, “Kế hoạch”. Trưởng chi nhánh được phép truy xuất tất cả dữ liệu chi tiêu của dự án của tất cả các phòng ban thuộc quyền quản lý của mình. Trưởng chi nhánh Hà Nội được phép truy xuất dữ liệu của chi nhánh Hà Nội và tất cả các chi nhánh khác. Trưởng phòng được phép đọc dữ liệu dự án của tất cả phòng ban nhưng chỉ được phép ghi dữ liệu dự án thuộc phòng của mình. Nhân viên chỉ được đọc dữ liệu dự mình tham gia (OLS).
 ### 9.1 Tạo các thành phần policy.
 
+#### Tạo policy container để chứa các thông tin về level, compartment, group, label...
+>`SA_SYSDBA.CREATE_POLICY(
+  policy_name => 'chitieu_policy',
+  column_name => 'chitieu_label',
+  default_options => 'no_control'
+);`
+
 #### Tạo các level “Thông thường”, “Giới hạn”, “Bí mật”, “Bí mật cao”.
-
-
++ ### Ví dụ từ mã nguồn:
+>`SA_COMPONENTS.CREATE_LEVEL('duan_policy',10,'BT','Binh_thuong');`
 
 #### Tạo các compartment “Nhân sự”, “Kế toán”, “Kế hoạch”.
-
 + ### Ví dụ từ mã nguồn:
+>`SA_COMPONENTS.CREATE_COMPARTMENT('duan_policy',10,'NS','Nhan_su');`
 
-
-#### Tạo 1 Group cha (TONGCTY) và 3 group con (DaNang, HoChiMinh, HN).
-
+#### Tạo các group "TPHCM", "HN", "DN"
 + ### Ví dụ từ mã nguồn:
+>`SA_COMPONENTS.CREATE_GROUP('duan_policy',10,'TPHCM','TP_Ho_Chi_Minh');`
 
-
+#### Dữ liệu có nhãn không có group thì là thuộc chi nhánh tổng công ty (không phụ thuộc vào chi nhánh)
 
 #### Tạo ra các label tương ứng
-
 + ### Ví dụ từ mã nguồn:
-
-
+>`SA_LABEL_ADMIN.CREATE_LABEL('duan_policy',100,'BT:NS:TPHCM');
+SA_LABEL_ADMIN.CREATE_LABEL('duan_policy',101,'GH:NS:TPHCM');
+SA_LABEL_ADMIN.CREATE_LABEL('duan_policy',102,'BM:NS:TPHCM');
+SA_LABEL_ADMIN.CREATE_LABEL('duan_policy',133,'GH:KH:DN');
+SA_LABEL_ADMIN.CREATE_LABEL('duan_policy',134,'BM:KH:DN');
+SA_LABEL_ADMIN.CREATE_LABEL('duan_policy',135,'BMC:KH:DN');`
 
 ### 9.2 Trưởng chi nhánh được phép truy xuất tất cả dữ liệu chi tiêu của dự án của tất cả các phòng ban thuộc quyền quản lý của mình.
-
-#### Gán nhãn cho dữ liệu bảng ChiTieu
-
-+ ### Ví dụ từ mã nguồn:
-
-
 ##### Sau đó gán nhãn cho các user là Trưởng chi nhánh
-
 + ### Ví dụ từ mã nguồn:
-
-
-
-#### Cấp quyền select trên bảng ChiTieu cho các Trưởng chi nhánh
-
-+ ### Ví dụ từ mã nguồn:
-
+>`--Gan nhan co truong chi nhanh TPHCM 1412193 (CN001)
+BEGIN
+ SA_USER_ADMIN.SET_LEVELS (
+  policy_name   => 'DUAN_POLICY',
+  user_name     => '1412193', 
+  max_level     => 'BMC',
+  min_level     => 'BT',
+  def_level     => 'BMC',
+  row_level     => 'BMC');
+ SA_USER_ADMIN.SET_COMPARTMENTS (
+  policy_name   => 'DUAN_POLICY',
+  user_name     => '1412193', 
+  read_comps    => 'NS,KT,KH',
+  write_comps   => '',
+  def_comps     => 'NS,KT,KH',
+  row_comps     => '');
+ SA_USER_ADMIN.SET_GROUPS (
+  policy_name   => 'DUAN_POLICY',
+  user_name     => '1412193', 
+  read_groups   => 'TPHCM',
+  write_groups  => '',
+  def_groups    => 'TPHCM',
+  row_groups    => '');
+END;
+/`
 
 ### 9.3 Trưởng chi nhánh Hà Nội được phép truy xuất dữ liệu của chi nhánh Hà Nội và tất cả các chi nhánh khác.
+>`--Gan nhan cho truong chi nhanh HN 1412195 (CN003)
+BEGIN
+ SA_USER_ADMIN.SET_LEVELS (
+  policy_name   => 'DUAN_POLICY',
+  user_name     => '1412195', 
+  max_level     => 'BMC',
+  min_level     => 'BT',
+  def_level     => 'BMC',
+  row_level     => 'BMC');
+ SA_USER_ADMIN.SET_COMPARTMENTS (
+  policy_name   => 'DUAN_POLICY',
+  user_name     => '1412195', 
+  read_comps    => 'NS,KT,KH',
+  write_comps   => NULL,
+  def_comps     => 'NS,KT,KH',
+  row_comps     => NULL);
+ SA_USER_ADMIN.SET_GROUPS (
+  policy_name   => 'DUAN_POLICY',
+  user_name     => '1412195', 
+  read_groups   => 'DN,HN,TPHCM',
+  write_groups  => NULL,
+  def_groups    => 'DN,HN,TPHCM',
+  row_groups    => NULL);
+END;
+/`
 
 ### 9.4 Trưởng phòng được phép đọc dữ liệu dự án của tất cả phòng ban nhưng chỉ được phép ghi dữ liệu dự án thuộc phòng của mình.
++ ### Ví dụ từ mã nguồn:
+>`--Gan nhan cho truong phong PB001 NS (phong Nhan su) 1412200
+BEGIN
+ SA_USER_ADMIN.SET_LEVELS (
+  policy_name   => 'DUAN_POLICY',
+  user_name     => '1412200', 
+  max_level     => 'BMC',
+  min_level     => 'BT',
+  def_level     => 'BMC',
+  row_level     => 'BMC');
+ SA_USER_ADMIN.SET_COMPARTMENTS (
+  policy_name   => 'DUAN_POLICY',
+  user_name     => '1412200', 
+  read_comps    => 'NS,KT,KH',
+  write_comps   => 'NS',
+  def_comps     => 'NS,KT,KH',
+  row_comps     => 'NS');
+ SA_USER_ADMIN.SET_GROUPS (
+  policy_name   => 'DUAN_POLICY',
+  user_name     => '1412200', 
+  read_groups   => 'TPHCM', --TPHCM vi 1412200 la chi nhanh TPHCM
+  write_groups  => 'TPHCM',
+  def_groups    => 'TPHCM',
+  row_groups    => 'TPHCM');
+END;
+/`
 
 #### Gán nhãn cho dữ liệu bảng DuAn
-
 + ### Ví dụ từ mã nguồn:
-
-
-
-##### Sau đó gán nhãn cho các user là Trưởng phòng
-
-+ ### Ví dụ từ mã nguồn:
-
+>`UPDATE hr.duan SET duan_label = CHAR_TO_LABEL('DUAN_POLICY','BT:NS:TPHCM') where mada='DA001';`
 
 ### 9.5 Nhân viên chỉ được đọc dữ liệu dự mình tham gia.
++ ### Ví dụ từ mã nguồn:
+>`SA_USER_ADMIN.SET_USER_LABELS('duan_policy','1412210','BT:NS:TPHCM');`
 
 ## Policy 10: Mỗi thông tin thu chi sẽ được đánh dấu các mức độ “Nhạy cảm”, “Không nhạy cảm”, “Bí mật” và thuộc các nhóm như “Lương”, “Quản lý”, “Vật liệu”. Nhân viên phụ trách đủ các lĩnh vực, có cấp độ phù hợp mới được phép truy xuất dữ liệu thu chi. Ngoài ra, mỗi thông tin thu chi còn quy định cấp “Quản lý” hay “Nhân viên” để xác định dữ liệu này thuộc cấp quản lý của nhân viên hay quản lý dự án. Quản lý có thể xem tất cả thông tin thu chi của nhân viên (OLS).
 
 #### Tạo các level “Nhạy cảm”, “Không nhạy cảm”, “Bí mật”.
-
 + ### Ví dụ từ mã nguồn: 
-
-
+>`SA_COMPONENTS.CREATE_LEVEL('chitieu_policy',10,'KNC','Nhay_cam');`
 
 #### Tạo các compartment “Lương”, “Quản lý”, “Vật liệu”.
-
 + ### Ví dụ từ mã nguồn: 
+>`SA_COMPONENTS.CREATE_COMPARTMENT('chitieu_policy',10,'L','Luong');`
 
+#### Tạo các group "Nhân viên", "Quản lý"
+>`SA_COMPONENTS.CREATE_GROUP('chitieu_policy',10,'QL','Quan_ly');`
 
+#### Tạo ra các label tương ứng
++ ### Ví dụ từ mã nguồn:
+>`SA_LABEL_ADMIN.CREATE_LABEL('chitieu_policy',1000,'KNC:L:QL');
+  SA_LABEL_ADMIN.CREATE_LABEL('chitieu_policy',1001,'NC:L:QL');
+  SA_LABEL_ADMIN.CREATE_LABEL('chitieu_policy',1016,'NC:VL:NV');
+  SA_LABEL_ADMIN.CREATE_LABEL('chitieu_policy',1017,'BM:VL:NV');`
+  
 ### 10.1 Nhân viên phụ trách đủ các lĩnh vực, có cấp độ phù hợp mới được phép truy xuất dữ liệu thu chi.
-
-
++ ### Ví dụ từ mã nguồn:
+>`EXECUTE SA_USER_ADMIN.SET_USER_LABELS('CHITIEU_POLICY','1412193','NC:L,QL:NV');
+EXECUTE SA_USER_ADMIN.SET_USER_LABELS('CHITIEU_POLICY','1412257','BM:VL:NV');`
 
 ### 10.2 Ngoài ra, mỗi thông tin thu chi còn quy định cấp “Quản lý” hay “Nhân viên” để xác định dữ liệu này thuộc cấp quản lý của nhân viên hay quản lý dự án. Quản lý có thể xem tất cả thông tin thu chi của nhân viên.
+#### Dữ liệu thuộc group "QL" hoặc "NV" có thể phân biệt được cấp quản lý của nhân viên hoặc quản lý dự án
+
+#### Group "Nhân viên" nhận group "Quản lý" làm cha nên user có nhãn "Quản lý" có thể truy xuất được cả dữ liệu nhãn "Nhân viên"
+>`SA_COMPONENTS.CREATE_GROUP('chitieu_policy',20,'NV','Nhan_vien', 'QL');`

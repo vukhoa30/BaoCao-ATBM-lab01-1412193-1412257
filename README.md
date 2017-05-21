@@ -8,7 +8,7 @@
 
 >`Những User :  1412200 (P.NS), 1412001(P.KT), 1412002(P.KH), ... là các Trưởng phòng`
 
->`Những User : là các Trưởng đề án`
+>`Những User :  là các Trưởng đề án`
 
 >`Những User : 1412186, 1412192, 1412200,1412201,1412202,1412203,1412204,1412205, ... , 1412213 là các Nhân viên bình thường`
 

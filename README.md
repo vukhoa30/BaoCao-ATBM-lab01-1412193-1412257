@@ -135,7 +135,7 @@ MP;`
 		return '';
 	end if;`
   
-####*Nếu trải qua hết thì thực hiện trả về như sau : *
+*Nếu trải qua hết thì thực hiện trả về như sau : *
 
 >`select maPhog into phongban from NHANVIEN where manv = user;`
 
